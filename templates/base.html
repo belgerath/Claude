@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gold Junior Mining Analyzer{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">&#9878;</span>
+                <h1>Gold Mining Analyzer <span>| Junior Mining Companies</span></h1>
+            </div>
+            <div class="gold-price-badge">
+                Au Spot: ${{ "%.0f"|format(gold_price) }}/oz
+            </div>
+        </div>
+    </header>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <div class="container">
+            Gold Junior Mining Analyzer &mdash; For educational and research purposes only. Not investment advice.
+        </div>
+    </footer>
+</body>
+</html>

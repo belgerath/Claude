@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}{{ company.name }} - Gold Mining Analyzer{% endblock %}
+
+{% block content %}
+<a href="/" class="back-link">&larr; Back to Dashboard</a>
+
+<div class="company-header">
+    <div>
+        <h2>{{ company.name }}</h2>
+        <div class="meta">
+            {{ company.ticker }} &middot; {{ company.exchange }} &middot;
+            <span class="stage-badge stage-{{ company.stage.value|lower }}">{{ company.stage.value }}</span>
+            &middot; {{ company.jurisdiction }}
+        </div>
+    </div>
+    <div style="text-align:right;">
+        <span class="rating rating-{{ scores.rating|lower|replace(' ', '-') }}" style="font-size:16px; padding:8px 18px;">
+            {{ scores.rating }}
+        </span>
+        <div style="margin-top:8px; font-size:24px; font-weight:700; color:var(--gold);">
+            {{ "%.1f"|format(scores.overall) }} / 100
+        </div>
+    </div>
+</div>
+
+<div class="description-box">
+    <strong>{{ company.flagship_project }}</strong> &mdash; {{ company.description }}
+</div>
+
+<div class="detail-grid">
+    <!-- Financials -->
+    <div class="detail-card">
+        <h3>Financials</h3>
+        <div class="metric-row">
+            <span class="metric-label">Share Price</span>
+            <span class="metric-value">{{ format_currency(company.financials.share_price, 2) }}</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Market Cap</span>
+            <span class="metric-value">{{ format_currency(company.financials.market_cap_m, 0) }}M</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Enterprise Value</span>
+            <span class="metric-value">{{ format_currency(company.financials.enterprise_value_m, 0) }}M</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Cash</span>
+            <span class="metric-value">{{ format_currency(company.financials.cash_m, 1) }}M</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Debt</span>
+            <span class="metric-value">{{ format_currency(company.financials.debt_m, 1) }}M</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Net Cash</span>
+            <span class="metric-value" style="color:{% if company.financials.net_cash_m >= 0 %}var(--green){% else %}var(--red){% endif %}">
+                {{ format_currency(company.financials.net_cash_m, 1) }}M
+            </span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Shares Outstanding</span>
+            <span class="metric-value">{{ "%.0f"|format(company.financials.shares_outstanding_m) }}M</span>
+        </div>
+        {% if company.financials.cash_runway_quarters %}
+        <div class="metric-row">
+            <span class="metric-label">Cash Runway</span>
+            <span class="metric-value" style="color:{% if company.financials.cash_runway_quarters >= 4 %}var(--green){% else %}var(--red){% endif %}">
+                {{ "%.1f"|format(company.financials.cash_runway_quarters) }} quarters
+            </span>
+        </div>
+        {% endif %}
+        {% if company.financials.revenue_m %}
+        <div class="metric-row">
+            <span class="metric-label">Annual Revenue</span>
+            <span class="metric-value">{{ format_currency(company.financials.revenue_m, 0) }}M</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Resources & Reserves -->
+    <div class="detail-card">
+        <h3>Resources &amp; Reserves</h3>
+        <div class="metric-row">
+            <span class="metric-label">Measured</span>
+            <span class="metric-value">{{ format_oz(company.resource.measured_oz) }}</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Indicated</span>
+            <span class="metric-value">{{ format_oz(company.resource.indicated_oz) }}</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Inferred</span>
+            <span class="metric-value">{{ format_oz(company.resource.inferred_oz) }}</span>
+        </div>
+        <div class="metric-row" style="font-weight:700;">
+            <span class="metric-label" style="font-weight:700;">Total Resource</span>
+            <span class="metric-value" style="color:var(--gold);">{{ format_oz(company.resource.total_oz) }}</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">M+I (Higher Confidence)</span>
+            <span class="metric-value">{{ format_oz(company.resource.total_mi_oz) }}</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Average Grade</span>
+            <span class="metric-value">{{ "%.2f"|format(company.resource.grade_g_per_t) }} g/t</span>
+        </div>
+        {% if company.reserve.total_oz > 0 %}
+        <div class="metric-row" style="margin-top:12px; padding-top:12px; border-top:1px solid #2a2a4a;">
+            <span class="metric-label">Proven Reserve</span>
+            <span class="metric-value">{{ format_oz(company.reserve.proven_oz) }}</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Probable Reserve</span>
+            <span class="metric-value">{{ format_oz(company.reserve.probable_oz) }}</span>
+        </div>
+        <div class="metric-row" style="font-weight:700;">
+            <span class="metric-label" style="font-weight:700;">Total Reserve</span>
+            <span class="metric-value" style="color:var(--gold);">{{ format_oz(company.reserve.total_oz) }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Valuation Metrics -->
+    <div class="detail-card">
+        <h3>Valuation Metrics</h3>
+        <div class="metric-row">
+            <span class="metric-label">EV / Total Resource oz</span>
+            <span class="metric-value">
+                {% if metrics.ev_per_total_resource_oz %}
+                    {{ format_currency(metrics.ev_per_total_resource_oz, 0) }}
+                {% else %}N/A{% endif %}
+            </span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">EV / M+I Resource oz</span>
+            <span class="metric-value">
+                {% if metrics.ev_per_mi_resource_oz %}
+                    {{ format_currency(metrics.ev_per_mi_resource_oz, 0) }}
+                {% else %}N/A{% endif %}
+            </span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">EV / Reserve oz</span>
+            <span class="metric-value">
+                {% if metrics.ev_per_reserve_oz %}
+                    {{ format_currency(metrics.ev_per_reserve_oz, 0) }}
+                {% else %}N/A{% endif %}
+            </span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Mkt Cap / Resource oz</span>
+            <span class="metric-value">
+                {% if metrics.market_cap_per_resource_oz %}
+                    {{ format_currency(metrics.market_cap_per_resource_oz, 0) }}
+                {% else %}N/A{% endif %}
+            </span>
+        </div>
+        {% if company.production %}
+        <div class="metric-row" style="margin-top:12px; padding-top:12px; border-top:1px solid #2a2a4a;">
+            <span class="metric-label">Annual Production</span>
+            <span class="metric-value">{{ format_oz(company.production.annual_production_oz) }}</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">AISC</span>
+            <span class="metric-value">{{ format_currency(company.production.aisc_per_oz, 0) }}/oz</span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">AISC Margin</span>
+            <span class="metric-value" style="color:{% if metrics.aisc_margin_per_oz and metrics.aisc_margin_per_oz > 0 %}var(--green){% else %}var(--red){% endif %}">
+                {% if metrics.aisc_margin_per_oz %}
+                    {{ format_currency(metrics.aisc_margin_per_oz, 0) }}/oz ({{ "%.0f"|format(metrics.aisc_margin_pct) }}%)
+                {% else %}N/A{% endif %}
+            </span>
+        </div>
+        <div class="metric-row">
+            <span class="metric-label">Recovery Rate</span>
+            <span class="metric-value">{{ "%.1f"|format(company.production.recovery_rate_pct) }}%</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Score Breakdown -->
+    <div class="detail-card">
+        <h3>Score Breakdown</h3>
+        {% set score_items = [
+            ('Resource Quality', scores.resource_quality),
+            ('Valuation', scores.valuation),
+            ('Financial Health', scores.financial_health),
+            ('Jurisdiction', scores.jurisdiction),
+            ('Stage Progress', scores.stage_progress),
+            ('Grade', scores.grade),
+        ] %}
+        {% for label, val in score_items %}
+        <div class="score-detail-row">
+            <span class="metric-label">{{ label }}</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <div class="score-detail-bar">
+                    <div class="score-detail-fill" style="width:{{ val }}%;
+                        background: {% if val >= 65 %}var(--green){% elif val >= 40 %}var(--orange){% else %}var(--red){% endif %};"></div>
+                </div>
+                <span class="metric-value" style="min-width:32px; text-align:right;">{{ "%.0f"|format(val) }}</span>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="score-detail-row" style="margin-top:12px; padding-top:12px; border-top:2px solid var(--gold-dark);">
+            <span class="metric-label" style="font-weight:700; color:var(--gold);">Overall Score</span>
+            <span class="metric-value" style="font-size:20px; color:var(--gold);">{{ "%.1f"|format(scores.overall) }}</span>
+        </div>
+    </div>
+
+    <!-- Catalysts -->
+    <div class="detail-card">
+        <h3>Upcoming Catalysts</h3>
+        {% if company.catalysts %}
+        <ul class="catalysts-list">
+            {% for c in company.catalysts %}
+            <li>{{ c }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p style="color:var(--text-secondary);">No catalysts listed.</p>
+        {% endif %}
+    </div>
+
+    <!-- Risks -->
+    <div class="detail-card">
+        <h3>Key Risks</h3>
+        {% if company.risks %}
+        <ul class="risks-list">
+            {% for r in company.risks %}
+            <li>{{ r }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p style="color:var(--text-secondary);">No risks listed.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

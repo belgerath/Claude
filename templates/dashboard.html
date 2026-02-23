@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="filters">
+    <form method="get" action="/" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <label for="stage">Stage:</label>
+        <select name="stage" id="stage" onchange="this.form.submit()">
+            <option value="all" {% if stage_filter == 'all' %}selected{% endif %}>All Stages</option>
+            {% for s in stages %}
+            <option value="{{ s }}" {% if stage_filter == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="sort">Sort by:</label>
+        <select name="sort" id="sort" onchange="this.form.submit()">
+            <option value="overall" {% if sort_by == 'overall' %}selected{% endif %}>Overall Score</option>
+            <option value="ev_per_oz" {% if sort_by == 'ev_per_oz' %}selected{% endif %}>EV/oz (cheapest)</option>
+            <option value="market_cap" {% if sort_by == 'market_cap' %}selected{% endif %}>Market Cap</option>
+            <option value="resource" {% if sort_by == 'resource' %}selected{% endif %}>Total Resource</option>
+            <option value="grade" {% if sort_by == 'grade' %}selected{% endif %}>Grade</option>
+        </select>
+    </form>
+</div>
+
+{% set ns = namespace(total_res=0, total_mcap=0, avg_score=0) %}
+{% for company, metrics, scores in ranked %}
+    {% set ns.total_res = ns.total_res + company.resource.total_oz %}
+    {% set ns.total_mcap = ns.total_mcap + company.financials.market_cap_m %}
+    {% set ns.avg_score = ns.avg_score + scores.overall %}
+{% endfor %}
+{% if ranked|length > 0 %}
+    {% set ns.avg_score = ns.avg_score / ranked|length %}
+{% endif %}
+
+<div class="summary-row">
+    <div class="summary-card">
+        <div class="label">Companies</div>
+        <div class="value">{{ ranked|length }}</div>
+        <div class="sub">of {{ total_companies }} total</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Total Resources</div>
+        <div class="value">{{ "%.1f"|format(ns.total_res / 1000000) }}M oz</div>
+        <div class="sub">across filtered companies</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Combined Market Cap</div>
+        <div class="value">${{ "%.0f"|format(ns.total_mcap) }}M</div>
+        <div class="sub">USD</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">Avg Score</div>
+        <div class="value">{{ "%.1f"|format(ns.avg_score) }}</div>
+        <div class="sub">out of 100</div>
+    </div>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Company</th>
+                <th>Stage</th>
+                <th>Jurisdiction</th>
+                <th>Mkt Cap</th>
+                <th>Total Resource</th>
+                <th>Grade (g/t)</th>
+                <th>EV/oz</th>
+                <th>Score</th>
+                <th>Rating</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for company, metrics, scores in ranked %}
+            <tr>
+                <td class="rank-cell">{{ loop.index }}</td>
+                <td>
+                    <div class="company-name">
+                        <a href="/company/{{ company.ticker }}">{{ company.name }}</a>
+                    </div>
+                    <div class="ticker">{{ company.ticker }} &middot; {{ company.exchange }}</div>
+                </td>
+                <td>
+                    <span class="stage-badge stage-{{ company.stage.value|lower }}">
+                        {{ company.stage.value }}
+                    </span>
+                </td>
+                <td>{{ company.jurisdiction }}</td>
+                <td>${{ "%.0f"|format(company.financials.market_cap_m) }}M</td>
+                <td>{{ format_oz(company.resource.total_oz) }}</td>
+                <td>{{ "%.1f"|format(company.resource.grade_g_per_t) }}</td>
+                <td>
+                    {% if metrics.ev_per_total_resource_oz %}
+                        ${{ "%.0f"|format(metrics.ev_per_total_resource_oz) }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="score-bar-container">
+                        <div class="score-bar">
+                            <div class="score-bar-fill" style="width:{{ scores.overall }}%;
+                                background: {% if scores.overall >= 65 %}var(--green){% elif scores.overall >= 50 %}var(--orange){% else %}var(--red){% endif %};"></div>
+                        </div>
+                        <span class="score-value">{{ "%.0f"|format(scores.overall) }}</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="rating rating-{{ scores.rating|lower|replace(' ', '-') }}">
+                        {{ scores.rating }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
