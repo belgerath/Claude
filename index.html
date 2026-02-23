@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vancouver Weather</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Vancouver Weather</h1>
+      <p class="subtitle">British Columbia, Canada</p>
+    </header>
+
+    <main>
+      <section id="current-weather" class="card current-card">
+        <div class="loading" id="loading">Loading weather data...</div>
+        <div class="current-content hidden" id="current-content">
+          <div class="current-top">
+            <div class="current-icon" id="current-icon"></div>
+            <div class="current-temp">
+              <span class="temp-value" id="current-temp">--</span>
+              <span class="temp-unit">&deg;C</span>
+            </div>
+          </div>
+          <p class="weather-description" id="weather-description">--</p>
+          <div class="current-details">
+            <div class="detail">
+              <span class="detail-label">Feels Like</span>
+              <span class="detail-value" id="feels-like">--&deg;C</span>
+            </div>
+            <div class="detail">
+              <span class="detail-label">Humidity</span>
+              <span class="detail-value" id="humidity">--%</span>
+            </div>
+            <div class="detail">
+              <span class="detail-label">Wind</span>
+              <span class="detail-value" id="wind">-- km/h</span>
+            </div>
+            <div class="detail">
+              <span class="detail-label">UV Index</span>
+              <span class="detail-value" id="uv-index">--</span>
+            </div>
+            <div class="detail">
+              <span class="detail-label">Precipitation</span>
+              <span class="detail-value" id="precipitation">-- mm</span>
+            </div>
+            <div class="detail">
+              <span class="detail-label">Visibility</span>
+              <span class="detail-value" id="visibility">-- km</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Hourly Forecast</h2>
+        <div class="hourly-scroll" id="hourly-forecast">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>7-Day Forecast</h2>
+        <div class="daily-forecast" id="daily-forecast">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Data from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo API</a></p>
+      <p id="last-updated"></p>
+    </footer>
+  </div>
+
+  <div class="error-banner hidden" id="error-banner">
+    <p id="error-message">Unable to load weather data.</p>
+    <button id="retry-btn">Retry</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
